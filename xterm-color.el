@@ -299,6 +299,9 @@ Once that happens, we generate a single text property for the entire string.")
     ;; Reset to default FG color
     ((= 39 elem)
      (remhash 'foreground-color xterm-color--current)
+     (setq xterm-color--attributes
+           (logand xterm-color--attributes
+                   (lognot +xterm-color--bright+)))
      (setq elems (cdr elems)))
     ;; Reset to default BG color
     ((= 49 elem)

@@ -181,6 +181,11 @@
   :type '(vector string string string string string string string string)
   :group 'xterm-color)
 
+(defcustom xterm-color-use-bold nil
+  "Whether to add the `weight' face property.
+When nil, bright colors are used to simulate boldness."
+  :type 'boolean)
+
 ;;
 ;; Buffer locals, used by state machine
 ;;
@@ -239,6 +244,7 @@ Once that happens, we generate a single text property for the entire string.")
 (defconst +xterm-color--negative+  16)
 (defconst +xterm-color--frame+     32)
 (defconst +xterm-color--overline+  64)
+(defconst +xterm-color--bold+      128)
 
 ;;
 ;; Functions
@@ -311,7 +317,9 @@ Once that happens, we generate a single text property for the entire string.")
     ((= 1 elem)
      (setq xterm-color--attributes
            (logior xterm-color--attributes
-                   +xterm-color--bright+))
+                   (if xterm-color-use-bold
+                       +xterm-color--bold+
+                     +xterm-color--bright+)))
      (setq elems (cdr elems)))
     ;; Faint color, emulated as normal intensity
     ((= 2 elem)
@@ -347,7 +355,8 @@ Once that happens, we generate a single text property for the entire string.")
     ((= 22 elem)
      (setq xterm-color--attributes
            (logand xterm-color--attributes
-                   (lognot +xterm-color--bright+)))
+                   (lognot +xterm-color--bright+)
+                   (lognot +xterm-color--bold+)))
      (setq elems (cdr elems)))
     ;; No italic
     ((= 23 elem)
@@ -491,6 +500,9 @@ Once that happens, we generate a single text property for the entire string.")
         (push `(:overline t) ret))
       (when (is-set? +xterm-color--frame+)
         (push `(:box t) ret))
+      (when (and xterm-color-use-bold
+                 (is-set? +xterm-color--bold+))
+        (push '(:weight bold) ret))
       (when fg
         (push `(:foreground ,(if (stringp fg)
                                  fg
